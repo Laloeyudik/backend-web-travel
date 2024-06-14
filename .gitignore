@@ -3,6 +3,3 @@ node_modules
 .rest
 API.rest
 Scetch_Sistem
-/app/kendaraan/api/kendaraanRoutes.js
-/app/kendaraan/data-access/kendaraanSchema.js
-/app/kendaraan/domain/kendaraanController.js
