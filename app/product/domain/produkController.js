@@ -39,11 +39,20 @@ class ProdukManager {
     return getDatasId;
   }
 
-  async getDataProduk(res) {
-    const dataProduk = await produkSchema.findAll();
 
-    this.setMessage = dataProduk;
-    res.status(200).json(this.getMessage);
+  async getDataProduk(req, res) {
+    const { page = 1, limit = 6 } = req.query;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const dataProduk = await produkSchema.findAll();
+    this.setMessage = {
+      datas: dataProduk.slice(startIndex, endIndex),
+      dataAll: dataProduk,
+      page: page,
+      totalPages: Math.ceil(dataProduk.length / limit),
+      totalProduks: dataProduk.length
+    };
+    res.json(this.getMessage);
   }
   async getDataProdukKategory(req, res) {
     const dataProduk = await produkSchema.findAll({
@@ -101,11 +110,6 @@ class ProdukManager {
       this.setMessage = "Gambar tidak ditemukan.";
       return this.getMessage;
     }
-  //   if (!req.files || req.files.length === 0) {
-  //     return res.status(400).json({ message: "Gambar tidak ditemukan." });
-  // }
-  //   this.#linkImage = this.#managerImage.linkImage(req);
-  //   console.log("img", req.files);
 
     await produkSchema.create({
       judul: judul,
@@ -159,18 +163,50 @@ class ProdukManager {
         }
 
         await dataIdProduk.update({
-          judul: judul,
-          harga: harga,
-          jenisHarga: jenisHarga,
+          judul:
+            judul == "" || judul == null
+              ? `${dataIdProduk["judul"]}`
+              : `${judul}`,
+          harga:
+            harga == "" || harga == null
+              ? `${dataIdProduk["harga"]}`
+              : `${harga}`,
+          jenisHarga:
+            jenisHarga == "" || jenisHarga == null
+              ? `${jenisHarga["jenisHarga"]}`
+              : `${jenisHarga}`,
           varian: varian.split(",") || varian.split(", "),
-          kategori: kategori,
-          deskripsi: deskripsi,
-          diskon: diskon,
-          stock: stock,
-          min: min,
-          max: max,
-          statusBooking: statusBooking,
+            // varian == "" || varian == null
+            //   ? `${dataIdProduk["varian"]}`
+            //   : `${varian.split(",") || varian.split(", ")}`,
+          kategori:
+            kategori == "" || kategori == null
+              ? `${dataIdProduk["kategori"]}`
+              : `${kategori}`,
+          deskripsi:
+            deskripsi == "" || deskripsi === null
+              ? `${dataIdProduk["deskripsi"]}`
+              : `${deskripsi}`,
+          diskon:
+            diskon == "" || diskon == null
+              ? `${dataIdProduk["diskon"]}`
+              : `${diskon}`,
+          stock:
+            stock == "" || stock == null
+              ? `${dataIdProduk["stock"]}`
+              : `${stock}`,
+          min: min == "" || min === null ? `${dataIdProduk["min"]}` : `${min}`,
+          max: max == "" || max === null ? `${dataIdProduk["max"]}` : `${max}`,
+          statusBooking:
+            statusBooking == "" || statusBooking === null
+              ? `${dataIdProduk["statusBooking"]}`
+              : `${statusBooking}`,
           image: this.#linkImage,
+            // this.#linkImage == "" ||
+            // this.#linkImage === null ||
+            // this.#linkImage === undefined
+            //   ? `${dataIdProduk["image"] }`
+            //   : `${this.#linkImage}`,
         });
 
         this.setMessage = { message: "Berhasil mengedit produk" };

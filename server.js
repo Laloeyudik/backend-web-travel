@@ -2,7 +2,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const db = require("./libraries/databases/db.js");
 const path = require("path")
-const cors = require("cors")
+const cors = require("cors");
+const morgan = require("morgan");
+const cookieParser = require('cookie-parser')
 require("dotenv").config();
 
 const serv = express();
@@ -22,14 +24,16 @@ db.authenticate()
       console.log("Database not connected", err);
     }
   });
-
+serv.use(cookieParser())
+serv.use(morgan("tiny"))
 serv.use(cors({
-  origin: `${process.env.ENDPOINT}`,
+  origin: [`${process.env.ENDPOINT_ADMIN}`,`${process.env.ENDPOINT}`],
   credentials: true,
   preflightContinue: false,
 }))
 
 serv.use('/libraries/images/public', express.static(path.join(__dirname, '/libraries/images/public')));
+serv.use('/upload/document', express.static(path.join(__dirname, '/upload/document')));
 
 // routing
 serv.use(
@@ -48,6 +52,24 @@ serv.use(
   `/${process.env.VERSION}`,
   require("./app/reviews/api/reviewRoutes.js")
 );
+serv.use(
+  `/${process.env.VERSION}`,
+  require("./app/uploadMasal/api/uploadFIleExcelTemplate.js")
+);
+serv.use(
+  `/${process.env.VERSION}`,
+  require("./app/admin/api/adminRoute.js")
+);
+serv.use(
+  `/${process.env.VERSION}`,
+  require("./app/messages/api/messageRoute.js")
+);
+serv.use(
+  `/${process.env.VERSION}`,
+  require("./app/document/api/documentRout.js")
+);
+
+
 
 serv.listen(5000, () => {
   console.log("Server RUNNING..");

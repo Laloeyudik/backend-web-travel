@@ -18,9 +18,10 @@ routeProduk.get("/produk", (req, res) => {
  }else if(req.query.kategori){
 
  }else {
-    return managerProduk.getDataProduk(res);
+    return managerProduk.getDataProduk(req,res);
   }
 });
+
 
 routeProduk.get('/produk/c/:kategori', (req, res)=>{
   return managerProduk.getDataProdukKategory(req, res)
