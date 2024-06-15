@@ -36,10 +36,7 @@ serv.use('/libraries/images/public', express.static(path.join(__dirname, '/libra
 serv.use('/upload/document', express.static(path.join(__dirname, '/upload/document')));
 
 // routing
-serv.use(
-  `/${process.env.VERSION}`,
-  require("./app/tourist/api/touristRoutes.js")
-);
+
 serv.use(
   `/${process.env.VERSION}`,
   require("./app/users/api/usersRouters.js")
@@ -52,10 +49,7 @@ serv.use(
   `/${process.env.VERSION}`,
   require("./app/reviews/api/reviewRoutes.js")
 );
-serv.use(
-  `/${process.env.VERSION}`,
-  require("./app/uploadMasal/api/uploadFIleExcelTemplate.js")
-);
+
 serv.use(
   `/${process.env.VERSION}`,
   require("./app/admin/api/adminRoute.js")
