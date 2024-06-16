@@ -65,6 +65,7 @@ serv.use(
 
 
 
-serv.listen(5000, () => {
-  console.log("Server RUNNING..");
+serv.listen(process.env.PORT_SERV, () => {
+  console.log(`SERVER RUNNING ON ${process.env.PORT_SERV}`);
 });
+
