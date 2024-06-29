@@ -1,7 +1,9 @@
+
 const multer = require("multer");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+const sharp = require("sharp");
 
 class ManageImage {
   constructor() {
@@ -13,7 +15,7 @@ class ManageImage {
   }
 
   set setMessage(msg) {
-    return (this.message = msg);
+    this.message = msg;
   }
 
   typeImage(req, file, cb) {
@@ -21,11 +23,7 @@ class ManageImage {
     const types = [".jpg", ".jpeg", ".gif", ".png", ".webp", ".heic"];
 
     if (!types.includes(extName.toLowerCase())) {
-      cb((err) => {
-        if (err) {
-          console.log("Format gambar tidak didukung. ");
-        }
-      });
+      cb(new Error("Format gambar tidak didukung."), false);
     } else {
       cb(null, true);
     }
@@ -33,65 +31,100 @@ class ManageImage {
 
   storage() {
     return multer.diskStorage({
-      destination: (req, file, cb) => {
-        const filePath = path.join(__dirname, "./public/");
-        if (!fs.existsSync(filePath)) {
-          fs.mkdirSync(filePath, (err) => {
-            if (err) {
-              this.setMessage = { msg: "folder disk gagal di buat." };
-            }
-          });
-        } else {
+      destination: async (req, file, cb) => {
+        const filePath = path.join(__dirname, "./private/");
+        try {
+          await fs.ensureDir(filePath);
           cb(null, filePath);
+        } catch (err) {
+          this.setMessage = "Folder disk gagal dibuat.";
+          cb(err, filePath);
         }
       },
       filename: (req, file, cb) => {
-        cb(null, uuidv4() + path.extname(file.originalname));
+        // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const filename = uuidv4() + path.extname(file.originalname);
+        cb(null, filename);
       },
     });
+  }
+
+  async convertToWebP(filePath, outputFilePath) {
+    try {
+      await sharp(filePath)
+        .resize(800)
+        .webp({ quality: 80 })
+        .toFile(outputFilePath);
+    } catch (error) {
+      console.error("Gagal mengonversi gambar ke WebP: ", error);
+    }
   }
 
   upload() {
     return multer({
       storage: this.storage(),
-      fileFilter: this.typeImage,
+      fileFilter: this.typeImage.bind(this),
     });
   }
 
-  linkImage(req) {
-    const images = req.files.map((file) => ({
-      "filename": `${file.filename}`,
-      "link": `${req.protocol}://${req.get("host")}/libraries/images/public/${
-        file.filename
-      }`,
-    }));
+  async linkImageSinggle(req){
+    const images = [];
+    const webpFilename = `${uuidv4()}.webp`;
+      const filePath = path.join(__dirname, "./private/", req.file.filename);
+      const webpFilePath = path.join(__dirname, "./public/", webpFilename);
+
+      await this.convertToWebP(filePath, webpFilePath);
+
+      images.push({
+        filename: webpFilename,
+        link: `${req.protocol}://${req.get("host")}/public/${webpFilename}`,
+      });
+  }
+
+
+  async linkImage(req) {
+    const images = [];
+    for (const file of req.files) {
+      // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const webpFilename = `${uuidv4()}.webp`;
+      const filePath = path.join(__dirname, "./private/", file.filename);
+      const webpFilePath = path.join(__dirname, "./public/", webpFilename);
+
+      await this.convertToWebP(filePath, webpFilePath);
+
+      images.push({
+        filename: webpFilename,
+        link: `${req.protocol}://${req.get("host")}/libraries/images/public/${webpFilename}`,
+      });
+    }
+
     return images;
   }
 
- async unlinkImage(idKendaraan) {
+  async unlinkImage(idKendaraan) {
     try {
       const imageData = idKendaraan.dataValues.image;
       const imageObject = JSON.parse(imageData);
-      await imageObject.forEach(image => {
-            const filePath = path.join(__dirname, "./public/", image.filename);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath, (err) => {
-                    if (err) {
-                        console.log(err);
-                        this.setMessage = "Image error, gagal terhapus.";
-                        return this.getMessage; 
-                    }
-                });
-            }
-        });
+      for (const image of imageObject) {
+        const filePath = path.join(__dirname, "./public/", image.filename);
+        if (await fs.pathExists(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+            console.log(`File ${filePath} berhasil dihapus.`);
+          } catch (err) {
+            console.error(`Gagal menghapus file ${filePath}:`, err);
+            this.setMessage = "Image error, gagal terhapus.";
+            return this.getMessage;
+          }
+        }
+      }
+      this.setMessage = "Semua gambar berhasil dihapus.";
     } catch (error) {
-        console.log(error);
+      console.log("Error:", error);
+      this.setMessage = "Gagal menghapus gambar.";
     }
-}
-
-
-
-
+    return this.getMessage;
+  }
 }
 
 module.exports = { ManageImage };
