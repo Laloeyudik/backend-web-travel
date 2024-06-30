@@ -6,7 +6,9 @@ const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
-const job = require('./libraries/authentication/cronJob.js')
+const job = require("./libraries/authentication/cronJob.js");
+const { SitemapStream, streamToPromise } = require("sitemap");
+const { createGzip } = require("zlib");
 require("dotenv").config();
 
 const serv = express();
@@ -89,10 +91,16 @@ serv.use(
 );
 serv.use(`/${process.env.VERSION}`, require("./app/blogs/api/blogs_route.js"));
 
-job.start()
+// Job Cron
+job.start();
+
+// SiteMap
+
+// SPA
+serv.use(express.static('public_html'));
+serv.get('/*', function(request, response) { response.sendFile(path.resolve('public_html', 'index.html')); });
+
 
 serv.listen(5000, () => {
   console.log(`SERVER RUNNING ON ${process.env.PORT_SERV}`);
 });
-
-

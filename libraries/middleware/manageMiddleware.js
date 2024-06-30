@@ -105,8 +105,11 @@ class ManageMiddleware {
   }
 
   authDate(date) {
+    console.log(typeof date);
     const regExp = /^[a-zA-Z0-9-/]+$/;
-    if (!regExp.test(date)) {
+    if (date === null ) {
+      return { value: true, data: date };
+    } else if (!regExp.test(date)) {
       this.setMessage = { value: false, msg: "Date is not valid" };
       return this.getMessage;
     } else {
@@ -115,8 +118,11 @@ class ManageMiddleware {
   }
 
   authTime(time) {
+    console.log(typeof time);
     const regExp = /^[0-9:]+$/;
-    if (!regExp.test(time)) {
+    if (time === null ) {
+      return { value: true, data: time };
+    } else if (!regExp.test(time)) {
       this.setMessage = { value: false, msg: "Time is not valid" };
       return this.getMessage;
     } else {
@@ -165,8 +171,6 @@ class ManageMiddleware {
     };
     return this.getMessage;
   }
-
- 
 }
 
 module.exports = { ManageMiddleware };

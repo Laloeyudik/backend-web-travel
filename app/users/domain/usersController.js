@@ -80,8 +80,8 @@ class ManagerUsers {
       fullname,
       email,
       telephone,
-      dropUp: { dateUp, timeUp },
-      dropOff: { dateOff, timeOff },
+      dropUp: { dateUp, timeUp  },
+      dropOff: { dateOff , timeOff },
     } = req.body;
 
     const authFullname = await this.#manageMiddleware.authFullname(fullname);
