@@ -94,11 +94,6 @@ serv.use(`/${process.env.VERSION}`, require("./app/blogs/api/blogs_route.js"));
 // Job Cron
 job.start();
 
-// SiteMap
-
-// SPA
-serv.use(express.static('public_html'));
-serv.get('/*', function(request, response) { response.sendFile(path.resolve('public_html', 'index.html')); });
 
 
 serv.listen(5000, () => {
